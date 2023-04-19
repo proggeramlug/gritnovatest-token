@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract GoerliApeCoin is ERC20 {
+contract SepoliaApeCoin is ERC20 {
 
     constructor(
         string memory name,

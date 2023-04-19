@@ -8,11 +8,11 @@ const API_URL = process.env.API_URL;
 const web3 = createAlchemyWeb3(API_URL);
 
 async function main() {
-  const GoerliApeCoin = await ethers.getContractFactory("GoerliApeCoin");
+  const SepoliaApeCoin = await ethers.getContractFactory("SepoliaApeCoin");
 
   // Start deployment, returning a promise that resolves to a contract object
   const amount = 1000000;
-  const hello_world = await GoerliApeCoin.deploy("GoerliApeCoin", "GAPE", web3.utils.toWei(''+amount,"ether"));   
+  const hello_world = await SepoliaApeCoin.deploy("SepoliaApeCoin", "SAPE", web3.utils.toWei(''+amount,"ether"));   
   console.log("Contract deployed to address:", hello_world.address);
 }
 
