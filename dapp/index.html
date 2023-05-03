@@ -1,0 +1,161 @@
+<!doctype html>
+<html class="no-js" lang="en-US">
+
+<head>
+	<title>Mint</title>
+	<script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+</head>
+
+<body>
+	<h1>Mint TestToken</h1>
+
+	<div id="res"></div>
+	
+	<input id="amount" value="1000" /> 
+	<button onclick="mint(document.getElementById('amount').value);">Mint</button>
+	<br />
+	<br />
+	<br />
+	<button onclick="addToken()">Add Testtoken to Metamask!</button>
+	<script>
+		var adr = "";
+
+		const network = 
+    {
+      "name": "Ethereum Sepolia",
+      "key": "sepolia",
+      "currency": "ETH",
+      "chainId": 11155111,
+      "enabled": true,
+        "blockExplorerUrls": ['https://sepolia.etherscan.io'],
+        "rpcUrls": ['https://sepolia.infura.io/v3/'],
+      "testnet": true
+    };
+
+		const tokenABI = [{
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "mint",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }];
+		const web3 = new Web3();
+		
+
+		var tokenContractAddress = "0xD9f5c803481AFabbFd6311e336af541cED663B0B";
+
+		async function enableMM(network) {
+			if (window.ethereum) {
+				try {
+					await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+					adr = window.ethereum.selectedAddress;
+					window.contract = await new web3.eth.Contract(tokenABI, tokenContractAddress);
+					
+				} catch (error) {
+					console.log("error: ", error);
+					// User denied account access...
+				}
+			}
+			// Legacy dapp browsers...
+			else if (window.web3) {
+			}
+			// Non-dapp browsers...
+			else {
+				console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
+			}
+		}
+		async function mint(amount) {
+			await enableMM(network);
+			await switchNetworks(network);
+			console.log("network: ", network);
+			var weiAmount = web3.utils.numberToHex(web3.utils.toWei(amount, "ether"));
+
+			const transactionParameters = {
+				gas: web3.utils.toHex(295000),
+				maxPriorityFeePerGas: null,
+				maxFeePerGas: null,
+				to: tokenContractAddress,
+				from: window.ethereum.selectedAddress,
+				data: window.contract.methods
+					.mint(weiAmount)
+					.encodeABI(),
+			};
+
+			try {
+				const txHash = await window.ethereum.request({
+					method: "eth_sendTransaction",
+					params: [transactionParameters]
+				});
+				document.getElementById('res').innerHTML = "Congratulations!<br /> Successfully minted<br /><br />Mint started, check it out here: <a href='" + network.blockExplorerUrls[0] + "/tx/" + txHash + "' target='_blank'>" + network.blockExplorerUrls[0] + "/tx/" + txHash + "</a><br />";
+			} catch (error) {
+				document.getElementById('res').innerHTML = "😥 Something went wrong: " + error.message;
+			}
+		}
+		async function addToken() {
+			const tokenSymbol = 'TT';
+			const tokenDecimals = 18;
+			const tokenImage = 'http://placekitten.com/200/300';
+			
+			try {
+			const wasAdded = await ethereum.request({
+				method: 'wallet_watchAsset',
+				params: {
+				type: 'ERC20', // Initially only supports ERC20, but eventually more!
+				options: {
+					address: tokenContractAddress, // The address that the token is at.
+					symbol: tokenSymbol, // A ticker symbol or shorthand, up to 5 chars.
+					decimals: tokenDecimals, // The number of decimals in the token
+					image: tokenImage, // A string url of the token logo
+				},
+				},
+			});
+			
+			
+			} catch (error) {
+			console.log(error);
+			}
+
+		}
+		async function switchNetworks(network) {
+			try {
+				await window.ethereum.request({
+					method: 'wallet_switchEthereumChain',
+					params: [{ chainId: "0x"+network.chainId.toString(16) }],
+				});
+			} catch (error) {
+				if (error.code === 4902) {
+					try {
+						await window.ethereum.request({
+							method: 'wallet_addEthereumChain',
+							params: [
+								{
+									chainId: "0x"+network.chainId.toString(16),
+									chainName: network.name,
+									nativeCurrency: {
+										symbol: network.currency,
+										decimals: 18,
+										name: network.currency
+									},
+									blockExplorerUrls: network.blockExplorerUrls,
+									rpcUrls: network.rpcUrls,
+								},
+							],
+						});
+					} catch (addError) {
+						console.error(addError);
+					}
+				}
+				console.error(error);
+			}
+		}
+	</script>
+</body>
+
+</html>
