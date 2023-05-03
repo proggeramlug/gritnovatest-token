@@ -13,4 +13,8 @@ contract SepoliaApeCoin is ERC20 {
         _mint(msg.sender, totalSupply_);
     }
 
+    function mint(uint256 amount) external {
+        _mint(msg.sender, amount);
+    }
+
 }
